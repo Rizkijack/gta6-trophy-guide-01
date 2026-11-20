@@ -1,52 +1,90 @@
-// A plain checklist of the 55 trophies: tick one off and it stays ticked (localStorage); export and import the ticks.
-const KEY = 'gta6-trophy-checklist';
-const rows = document.getElementById('rows');
-const grade = document.getElementById('grade');
-let earned = new Set(JSON.parse(localStorage.getItem(KEY) ?? '[]'));
-const doc = await (await fetch('data/trophies.json')).json();
+import { loadTrophies } from './data.js';
+import { loadProgress, saveProgress, loadSpoiler, saveSpoiler, exportProgress, importProgress } from './state.js';
+import { applyFilters } from './filter.js';
+import { renderList, renderDetail } from './render.js';
+import { renderRoadmap } from './roadmap.js';
 
-function save() {
-  localStorage.setItem(KEY, JSON.stringify([...earned]));
+const trophies = await loadTrophies();
+const earned = loadProgress();
+let spoiler = loadSpoiler();
+let selected = null;
+let view = 'checklist';
+
+const state = {
+  earned,
+  spoiler,
+  selected,
+  save: () => saveProgress(earned),
+  render: () => renderAll(),
+  renderDetail: () => renderDetailPanel(),
+};
+
+const listEl = document.getElementById('list');
+const detailEl = document.getElementById('detail');
+const roadmapEl = document.getElementById('roadmap');
+const progressEl = document.getElementById('progress');
+
+function visibleTrophies() {
+  return applyFilters(trophies, {
+    query: document.getElementById('search').value,
+    kind: document.getElementById('kind').value,
+    grade: document.getElementById('grade').value,
+    missableOnly: document.getElementById('missableOnly').checked,
+    spoiler,
+    earned,
+  });
 }
 
-function render() {
-  rows.replaceChildren();
-  for (const t of doc.trophies) {
-    if (grade.value !== 'all' && t.grade !== grade.value) continue;
-    const tr = document.createElement('tr');
-    const box = document.createElement('input');
-    box.type = 'checkbox';
-    box.checked = earned.has(t.name);
-    box.addEventListener('change', () => {
-      if (box.checked) earned.add(t.name);
-      else earned.delete(t.name);
-      save();
-      render();
-    });
-    const cells = [box, `${t.name}\n${t.description}`, t.grade, t.guide];
-    for (const c of cells) {
-      const td = document.createElement('td');
-      if (typeof c === 'string') td.textContent = c;
-      else td.append(c);
-      tr.append(td);
-    }
-    rows.append(tr);
+function renderAll() {
+  progressEl.textContent = earned.size + ' of ' + trophies.length + ' earned';
+  document.getElementById('spoiler').checked = spoiler;
+  if (view === 'checklist') {
+    renderList(listEl, visibleTrophies(), state);
+  } else {
+    renderRoadmap(roadmapEl, trophies, state);
   }
-  document.getElementById('progress').textContent = `${earned.size} of ${doc.trophies.length} earned`;
 }
 
-document.getElementById('export').addEventListener('click', () => {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify([...earned])], { type: 'application/json' }));
-  a.download = 'trophy-progress.json';
-  a.click();
+function renderDetailPanel() {
+  const t = trophies.find(x => x.name === state.selected);
+  renderDetail(detailEl, t, state);
+}
+
+// view tabs
+document.querySelectorAll('.views button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    view = btn.dataset.view;
+    document.querySelectorAll('.views button').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
+    renderAll();
+    if (view === 'checklist' && state.selected) renderDetailPanel();
+  });
 });
+
+document.getElementById('search').addEventListener('input', renderAll);
+document.getElementById('kind').addEventListener('change', renderAll);
+document.getElementById('grade').addEventListener('change', renderAll);
+document.getElementById('missableOnly').addEventListener('change', renderAll);
+document.getElementById('spoiler').addEventListener('change', (e) => {
+  spoiler = e.target.checked;
+  saveSpoiler(spoiler);
+  state.spoiler = spoiler;
+  renderAll();
+  if (state.selected) renderDetailPanel();
+});
+
+document.getElementById('export').addEventListener('click', () => exportProgress(earned));
 document.getElementById('import').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  earned = new Set(JSON.parse(await file.text()));
-  save();
-  render();
+  try {
+    earned = await importProgress(file);
+    state.earned = earned;
+    saveProgress(earned);
+    renderAll();
+  } catch (err) { alert('Import failed: ' + err.message); }
 });
-grade.addEventListener('change', render);
-render();
+
+state.render = renderAll;
+state.save = () => saveProgress(earned);
+renderAll();
