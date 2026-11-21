@@ -53,6 +53,12 @@ header {
 main { padding: 16px 20px; }
 .view { display: none; }
 .view.active { display: block; }
+#view-checklist.view.active {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 16px;
+  align-items: start;
+}
 .list { display: grid; gap: 8px; }
 .card {
   background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
@@ -103,6 +109,6 @@ main { padding: 16px 20px; }
 .roadmap-stage li { margin: 4px 0; }
 @media (max-width: 900px) {
   main { display: block; }
-  #view-checklist { display: block; }
+  #view-checklist.view.active { display: block; }
   .detail { position: static; max-height: none; }
 }
