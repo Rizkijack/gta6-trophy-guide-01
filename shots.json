@@ -1,5 +1,1 @@
-[
-  { "file": "1-checklist.jpg", "path": "/", "viewport": { "width": 1280, "height": 800 } },
-  { "file": "2-silver.jpg", "path": "/", "grade": "silver", "viewport": { "width": 1280, "height": 800 } },
-  { "file": "3-bronze.jpg", "path": "/", "grade": "bronze", "scroll": 1400, "viewport": { "width": 1280, "height": 800 } }
-]
+[{"file": "1-cover.png", "notes": "Checklist with Strangers & Freaks guide open: official name/description/grade, progress 14 of 55, filters, Guide/Steps/Sources cited", "path": "/", "viewport": {"height": 800, "width": 1280}}, {"file": "2-roadmap.png", "notes": "Roadmap stages 2-5: Missables (do not skip) with [MISSABLE] flag, collectible counts, earned strikethrough", "path": "/", "view": "roadmap", "viewport": {"height": 800, "width": 1280}}, {"file": "3-guide.png", "notes": "A Long Road gold trophy: full guide text, 4 steps, 2 named sources with URLs, roadmap stage badge", "path": "/", "viewport": {"height": 800, "width": 1280}}, {"file": "4-spoiler.png", "notes": "Spoiler mode ON (header checkbox checked), Story kind filter, 24 masked story trophies, spoiler-locked detail panel", "path": "/", "viewport": {"height": 800, "width": 1280}}]

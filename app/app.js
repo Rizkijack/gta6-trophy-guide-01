@@ -5,7 +5,7 @@ import { renderList, renderDetail } from './render.js';
 import { renderRoadmap } from './roadmap.js';
 
 const trophies = await loadTrophies();
-const earned = loadProgress();
+let earned = loadProgress();
 let spoiler = loadSpoiler();
 let selected = null;
 let view = 'checklist';
